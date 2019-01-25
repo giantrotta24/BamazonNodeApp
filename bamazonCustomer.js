@@ -18,7 +18,7 @@ const connection = mysql.createConnection({
 });
 
 //connect to database
-connection.connect(function(err) {
+connection.connect(function (err) {
     if (err) throw err;
     //no error then start app
     startApp();
@@ -37,7 +37,7 @@ function startApp() {
     console.log('\n');
     //prompt user
     userPrompt();
-    
+
 }
 
 //list options
@@ -47,24 +47,24 @@ function userPrompt() {
         type: "list",
         message: "What would you like to do?",
         choices: ["Shop".yellow, "View Cart".blue, "Check Out".magenta, "Exit".red]
-    }).then(function(answer) {
+    }).then(function (answer) {
         //switch function
         switch (answer.menu) {
             case "Shop".yellow:
-            shop();
-            break;
+                shop();
+                break;
 
             case "View Cart".blue:
-            viewCart();
-            break;
+                viewCart();
+                break;
 
             case "Check Out".magenta:
-            checkOut();
-            break;
+                checkOut();
+                break;
 
             case "Exit".red:
-            endApp();
-            break;
+                endApp();
+                break;
         }
     });
 }
@@ -77,28 +77,28 @@ function shop() {
         type: "list",
         message: "Select a department",
         choices: ["Groceries".yellow, "Personal Care".blue, "Entertainment".magenta, "View All".green, "Back to Menu".red]
-    }).then(function(response) {
+    }).then(function (response) {
         //switch function
         switch (response.department) {
             case "Groceries".yellow:
-            groceries();
-            break;
+                groceries();
+                break;
 
             case "Personal Care".blue:
-            personalCare();
-            break;
+                personalCare();
+                break;
 
             case "Entertainment".magenta:
-            entertainment();
-            break;
+                entertainment();
+                break;
 
             case "View All".green:
-            queryAll();
-            break;
+                queryAll();
+                break;
 
             case "Back to Menu".red:
-            userPrompt();
-            break;
+                userPrompt();
+                break;
         }
     });
 
@@ -107,12 +107,16 @@ function shop() {
 
 
 function queryAll() {
-    connection.query("SELECT * FROM products", function(err, res) {
+    connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
-        console.log(res);
-        
+        // console.log(res);
+
         for (i = 0; i < res.length; i++) {
-            console.log(res[i]);
+            console.log('\n');
+            console.log('--------------------'.red);
+            console.log("ID: " + res[i].item_id + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
+            console.log('--------------------'.red);
+            console.log('\n');
         }
     });
     connection.end();
