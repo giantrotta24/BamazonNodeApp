@@ -61,10 +61,9 @@ function userPrompt() {
     });
 }
 
-//shopping
+//If user selects the shop option
 function shop() {
-
-
+    //select department
     inquirer.prompt({
         name: "department",
         type: "list",
@@ -97,11 +96,13 @@ function shop() {
 
 }
 
+//validate integer
 function validateInt(num) {
     const reg = /^\d+$/;
     return reg.test(num) || "Please enter a valid ID.".red;
 }
 
+//display all items and trigger purchase prompt
 function queryAll() {
     let select = "SELECT * FROM products";
     connection.query(select, function (err, res) {
@@ -113,20 +114,20 @@ function queryAll() {
         for (let i = 0; i < res.length; i++) {
 
             console.log('\n');
-            console.log('--------------------'.red);
-            console.log("ID: " + res[i].item_id + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
-            console.log('--------------------'.red);
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
+            console.log("ID: " + res[i].item_id + " | " + "Quantity: " + res[i].stock_quantity + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
             console.log('\n');
 
         }
-
+        //trigger purchase prompt
         userPurchase();
     });
 
 }
 
+//purchase prompt
 function userPurchase() {
-
 
     inquirer.prompt([
         {
@@ -136,6 +137,7 @@ function userPurchase() {
             message: "Enter the ID # of the item you want to purchase.".red
         }
     ]).then(function (answer) {
+        // 0 is not valid
         if (answer.idInput === "0") {
             console.log('--------------------'.red);
             console.log('\n');
@@ -144,6 +146,7 @@ function userPurchase() {
             console.log('--------------------'.red);
             userPurchase();
         } else {
+            //prompt quantity 
             inquirer.prompt([
                 {
                     name: "quantity",
@@ -152,6 +155,7 @@ function userPurchase() {
                     message: "How many of this item would you like to purchase?".red
                 }
             ]).then(function (ans) {
+                // 0 is not valid
                 if (ans.quantity === "0") {
                     console.log('--------------------'.red);
                     console.log('\n');
@@ -160,17 +164,29 @@ function userPurchase() {
                     console.log('--------------------'.red);
                     userPurchase();
                 } else {
+                    //select prom database based on user input ID
                     let select = "SELECT products.product_name, products.price, products.stock_quantity FROM products WHERE ?";
                     connection.query(select, [{ item_id: parseInt(answer.idInput) }], function (err, res) {
                         if (err) throw err;
-                        if (ans.quantity > res[0].stock_quantity) {
+                        // if sold out display sold out
+                        if (res[0].stock_quantity === 0) {
                             console.log('--------------------'.red);
                             console.log('\n');
-                            console.log("Insufficient quantity. We currently have " + res[0].stock_quantity + " of that product in stock.".red);
+                            console.log("Insufficient quantity. Product is SOLD OUT".red);
                             console.log('\n');
                             console.log('--------------------'.red);
                             userPurchase();
-                        } else {
+                            // insufficient quantity
+                        } else if (ans.quantity > res[0].stock_quantity) {
+                            console.log('--------------------'.red);
+                            console.log('\n');
+                            console.log("Insufficient quantity. We currently only have ".red + res[0].stock_quantity + " of that product in stock.".red);
+                            console.log('\n');
+                            console.log('--------------------'.red);
+                            userPurchase();
+                        } 
+                        else {
+                            //update database stock quantity and display cost
                             let newQuantity = res[0].stock_quantity;
                             newQuantity -= ans.quantity;
                             let update = "UPDATE products SET ? WHERE ?";
@@ -181,32 +197,99 @@ function userPurchase() {
                             let totalCost = ans.quantity * cost;
                             console.log('--------------------'.green);
                             console.log('\n');
-                            console.log("Your total cost is " + totalCost.toFixed(2) + ".".green);
-                            endApp();
+                            console.log("Your total cost is $".green + totalCost.toFixed(2).green + ".".green);
+                            inquirer.prompt([
+                                {
+                                    name: "confirm",
+                                    type: "list",
+                                    message: "What's next?",
+                                    choices: ["Keep Shopping".green, "Exit".red]
+                                }
+                            ]).then(function (con) {
+                                switch (con.confirm) {
+                                    case "Keep Shopping".green:
+                                        shop();
+                                        break;
+                        
+                                    case "Exit".red:
+                                        endApp();
+                                        break;
+                                }
+                            });
                         }
-                    })
+                    });
                 }
-            })
+            });
         }
     });
 }
 
+//display based on department department then prompt shop
 function groceries() {
-    console.log("nothing yet");
-    connection.end();
+    let select = "SELECT products.item_id, products.stock_quantity, products.product_name, products.price FROM products WHERE ?";
+    connection.query(select, [{ department_name: "Grocery" }], function (err, res) {
+
+        if (err) throw err;
+        // console.log(res);
+
+        //display products
+        for (let i = 0; i < res.length; i++) {
+
+            console.log('\n');
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
+            console.log("ID: " + res[i].item_id + " | " + "Quantity: " + res[i].stock_quantity + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
+            console.log('\n');
+
+        }
+        //trigger purchase prompt
+        userPurchase();
+    });
 }
 
 function personalCare() {
-    console.log("nothing yet");
+    let select = "SELECT products.item_id, products.stock_quantity, products.product_name, products.price FROM products WHERE ?";
+    connection.query(select, [{ department_name: "Personal Care" }], function (err, res) {
 
-    connection.end();
+        if (err) throw err;
+        // console.log(res);
+
+        //display products
+        for (let i = 0; i < res.length; i++) {
+
+            console.log('\n');
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
+            console.log("ID: " + res[i].item_id + " | " + "Quantity: " + res[i].stock_quantity + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
+            console.log('\n');
+
+        }
+        //trigger purchase prompt
+        userPurchase();
+    });
 }
 
 function entertainment() {
-    console.log("nothing yet");
-    connection.end();
-}
+    let select = "SELECT products.item_id, products.stock_quantity, products.product_name, products.price FROM products WHERE ?";
+    connection.query(select, [{ department_name: "Entertainment" }], function (err, res) {
 
+        if (err) throw err;
+        // console.log(res);
+
+        //display products
+        for (let i = 0; i < res.length; i++) {
+
+            console.log('\n');
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
+            console.log("ID: " + res[i].item_id + " | " + "Quantity: " + res[i].stock_quantity + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.red);
+            console.log('\n');
+
+        }
+        //trigger purchase prompt
+        userPurchase();
+    });
+}
 
 //exit option
 function endApp() {
