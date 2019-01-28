@@ -46,20 +46,12 @@ function userPrompt() {
         name: "menu",
         type: "list",
         message: "What would you like to do?",
-        choices: ["Shop".yellow, "View Cart".blue, "Check Out".magenta, "Exit".red]
+        choices: ["Shop".yellow, "Exit".red]
     }).then(function (answer) {
         //switch function
         switch (answer.menu) {
             case "Shop".yellow:
                 shop();
-                break;
-
-            case "View Cart".blue:
-                viewCart();
-                break;
-
-            case "Check Out".magenta:
-                checkOut();
                 break;
 
             case "Exit".red:
@@ -71,6 +63,7 @@ function userPrompt() {
 
 //shopping
 function shop() {
+
 
     inquirer.prompt({
         name: "department",
@@ -104,22 +97,98 @@ function shop() {
 
 }
 
-
+function validateInt(num) {
+    const reg = /^\d+$/;
+    return reg.test(num) || "Please enter a valid ID.".red;
+}
 
 function queryAll() {
-    connection.query("SELECT * FROM products", function (err, res) {
+    let select = "SELECT * FROM products";
+    connection.query(select, function (err, res) {
+
         if (err) throw err;
         // console.log(res);
 
-        for (i = 0; i < res.length; i++) {
+        //display products
+        for (let i = 0; i < res.length; i++) {
+
             console.log('\n');
             console.log('--------------------'.red);
             console.log("ID: " + res[i].item_id + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
             console.log('--------------------'.red);
             console.log('\n');
+
+        }
+
+        userPurchase();
+    });
+
+}
+
+function userPurchase() {
+
+
+    inquirer.prompt([
+        {
+            name: "idInput",
+            type: "input",
+            validate: validateInt,
+            message: "Enter the ID # of the item you want to purchase.".red
+        }
+    ]).then(function (answer) {
+        if (answer.idInput === "0") {
+            console.log('--------------------'.red);
+            console.log('\n');
+            console.log("Please enter a valid ID!".red);
+            console.log('\n');
+            console.log('--------------------'.red);
+            userPurchase();
+        } else {
+            inquirer.prompt([
+                {
+                    name: "quantity",
+                    type: "input",
+                    validate: validateInt,
+                    message: "How many of this item would you like to purchase?".red
+                }
+            ]).then(function (ans) {
+                if (ans.quantity === "0") {
+                    console.log('--------------------'.red);
+                    console.log('\n');
+                    console.log("Please enter a valid quantity!".red);
+                    console.log('\n');
+                    console.log('--------------------'.red);
+                    userPurchase();
+                } else {
+                    let select = "SELECT products.product_name, products.price, products.stock_quantity FROM products WHERE ?";
+                    connection.query(select, [{ item_id: parseInt(answer.idInput) }], function (err, res) {
+                        if (err) throw err;
+                        if (ans.quantity > res[0].stock_quantity) {
+                            console.log('--------------------'.red);
+                            console.log('\n');
+                            console.log("Insufficient quantity. We currently have " + res[0].stock_quantity + " of that product in stock.".red);
+                            console.log('\n');
+                            console.log('--------------------'.red);
+                            userPurchase();
+                        } else {
+                            let newQuantity = res[0].stock_quantity;
+                            newQuantity -= ans.quantity;
+                            let update = "UPDATE products SET ? WHERE ?";
+                            connection.query(update, [{ stock_quantity: newQuantity }, { item_id: answer.idInput }], function (err, res) {
+                                if (err) throw err;
+                            });
+                            let cost = res[0].price;
+                            let totalCost = ans.quantity * cost;
+                            console.log('--------------------'.green);
+                            console.log('\n');
+                            console.log("Your total cost is " + totalCost.toFixed(2) + ".".green);
+                            endApp();
+                        }
+                    })
+                }
+            })
         }
     });
-    connection.end();
 }
 
 function groceries() {
@@ -129,6 +198,7 @@ function groceries() {
 
 function personalCare() {
     console.log("nothing yet");
+
     connection.end();
 }
 
@@ -138,28 +208,13 @@ function entertainment() {
 }
 
 
-
-
-
-//View Cart
-function viewCart() {
-    console.log("nothing yet");
-    connection.end();
-}
-
-//Check out function
-function checkOut() {
-    console.log("nothing yet");
-    connection.end();
-}
-
 //exit option
 function endApp() {
     console.log('\n');
     console.log('\n');
     console.log('--------------------'.red);
     console.log('\n');
-    console.log("Thank you for shopping with Bamazon™".red);
+    console.log("Thank you for shopping with Bamazon™".america);
     console.log('\n');
     console.log('--------------------'.red);
     console.log('\n');
