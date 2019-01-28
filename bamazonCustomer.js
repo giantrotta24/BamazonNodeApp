@@ -5,6 +5,7 @@ const inquirer = require("inquirer");
 const colors = require("colors");
 const keys = require('./keys');
 
+
 //create connection to database
 const connection = mysql.createConnection({
     host: "localhost",
