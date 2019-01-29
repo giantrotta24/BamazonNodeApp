@@ -82,8 +82,7 @@ function promptOptions() {
                 break;
 
             case "Add to Inventory".green:
-                console.log("nothing yet");
-                connection.end();
+                addItem();
                 break;
 
             case "Add New Product".magenta:
@@ -96,6 +95,85 @@ function promptOptions() {
                 break;
         }
     });
+}
+
+//validate integer
+function validateInt(num) {
+    const reg = /^\d+$/;
+    return reg.test(num) || "Please enter a valid ID.".red;
+}
+
+function addItem() {
+    let select = "SELECT * FROM products";
+    connection.query(select, function (err, res) {
+
+        if (err) throw err;
+        // console.log(res);
+
+        //display products
+        for (let i = 0; i < res.length; i++) {
+
+            console.log('\n');
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.blue);
+            console.log("ID: " + res[i].item_id + " | " + "Quantity: " + res[i].stock_quantity + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
+            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.blue);
+            console.log('\n');
+
+        }
+
+        inquirer.prompt([
+            {
+                name: "idInput",
+                type: "input",
+                validate: validateInt,
+                message: "Enter the ID # of the item you want to restock.".blue
+            }
+        ]).then(function (answer) {
+            if (answer.idInput === "0") {
+                console.log('--------------------'.blue);
+                console.log('\n');
+                console.log("Please enter a valid ID!".blue);
+                console.log('\n');
+                console.log('--------------------'.blue);
+                addItem();
+            } else {
+                inquirer.prompt([
+                    {
+                        name: "quantity",
+                        type: "input",
+                        validate: validateInt,
+                        message: "How many of this item would you like to add?".blue
+                    }
+                ]).then(function (ans) {
+                    if (ans.quantity === "0") {
+                        console.log('--------------------'.blue);
+                        console.log('\n');
+                        console.log("Please enter a valid quantity!".blue);
+                        console.log('\n');
+                        console.log('--------------------'.blue);
+                        addItem();
+                    } else {
+
+                        let update = "UPDATE products SET ? WHERE ?";
+                        let newQuantity = res[0].stock_quantity;
+                        newQuantity += parseInt(ans.quantity);
+                        console.log(newQuantity);
+                        connection.query(update, [{ stock_quantity: newQuantity }, { item_id: answer.idInput }], function (err, res) {
+                            if (err) throw err;
+                            console.log('--------------------'.blue);
+                            console.log('\n');
+                            console.log("Product Restock Successful".blue);
+                            console.log('\n');
+                            console.log('--------------------'.blue);
+                            connection.end();
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+
 }
 
 function queryLow() {
@@ -120,6 +198,26 @@ function queryLow() {
     });
 }
 
+// function displayAll() {
+//     let select = "SELECT * FROM products";
+//     connection.query(select, function (err, res) {
+
+//         if (err) throw err;
+//         // console.log(res);
+
+//         //display products
+//         for (let i = 0; i < res.length; i++) {
+
+//             console.log('\n');
+//             console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.blue);
+//             console.log("ID: " + res[i].item_id + " | " + "Quantity: " + res[i].stock_quantity + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
+//             console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.blue);
+//             console.log('\n');
+
+//         }
+//         addItem();
+//     });
+// }
 
 function queryAll() {
     let select = "SELECT * FROM products";
