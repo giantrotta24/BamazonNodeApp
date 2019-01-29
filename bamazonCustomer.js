@@ -166,7 +166,7 @@ function userPurchase() {
                     userPurchase();
                 } else {
                     //select prom database based on user input ID
-                    let select = "SELECT products.product_name, products.price, products.stock_quantity FROM products WHERE ?";
+                    let select = "SELECT products.product_name, products.price, products.stock_quantity, products.product_sales FROM products WHERE ?";
                     connection.query(select, [{ item_id: parseInt(answer.idInput) }], function (err, res) {
                         if (err) throw err;
                         // if sold out display sold out
@@ -190,33 +190,38 @@ function userPurchase() {
                             //update database stock quantity and display cost
                             let newQuantity = res[0].stock_quantity;
                             newQuantity -= ans.quantity;
-                            let update = "UPDATE products SET ? WHERE ?";
-                            connection.query(update, [{ stock_quantity: newQuantity }, { item_id: answer.idInput }], function (err, res) {
-                                if (err) throw err;
-                            });
                             let cost = res[0].price;
                             let totalCost = ans.quantity * cost;
-                            console.log('--------------------'.green);
-                            console.log('\n');
-                            console.log("Your total cost is $".green + totalCost.toFixed(2).green + ".".green);
-                            inquirer.prompt([
-                                {
-                                    name: "confirm",
-                                    type: "list",
-                                    message: "What's next?",
-                                    choices: ["Keep Shopping".green, "Exit".red]
-                                }
-                            ]).then(function (con) {
-                                switch (con.confirm) {
-                                    case "Keep Shopping".green:
-                                        shop();
-                                        break;
-                        
-                                    case "Exit".red:
-                                        endApp();
-                                        break;
-                                }
+                            let sales = res[0].product_sales;
+                            // console.log(sales);
+                            sales += totalCost;
+                            // console.log(sales.toFixed(2));
+                            let update = "UPDATE products SET ? WHERE ?";
+                            connection.query(update, [{ stock_quantity: newQuantity, product_sales: sales.toFixed(2) }, { item_id: answer.idInput }], function (err, res) {
+                                if (err) throw err;
+                                console.log('--------------------'.green);
+                                console.log('\n');
+                                console.log("Your total cost is $".green + totalCost.toFixed(2).green + ".".green);
+                                inquirer.prompt([
+                                    {
+                                        name: "confirm",
+                                        type: "list",
+                                        message: "What's next?",
+                                        choices: ["Keep Shopping".green, "Exit".red]
+                                    }
+                                ]).then(function (con) {
+                                    switch (con.confirm) {
+                                        case "Keep Shopping".green:
+                                            shop();
+                                            break;
+                            
+                                        case "Exit".red:
+                                            endApp();
+                                            break;
+                                    }
+                                });
                             });
+                            
                         }
                     });
                 }
