@@ -225,7 +225,7 @@ function userPurchase() {
     });
 }
 
-//display based on department department then prompt shop
+//display based on department then prompt shop
 function groceries() {
     let select = "SELECT products.item_id, products.stock_quantity, products.product_name, products.price FROM products WHERE ?";
     connection.query(select, [{ department_name: "Grocery" }], function (err, res) {
