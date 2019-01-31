@@ -4,7 +4,34 @@ const mysql = require("mysql");
 const inquirer = require("inquirer");
 const colors = require("colors");
 const keys = require('./keys');
-const Joi = require("joi");
+const { table } = require('table');
+
+//make table function
+function makeTable(data) {
+    // array containing array of first table row
+    const tableRow = [["Item ID", "Department Name", "Product Name", "Stock Quantity", "Stock Price", "Product Sales"]];
+
+    //for each loop, for each element of data push corresponding data array into table array
+    data.forEach(element => {
+        tableRow.push([element.item_id, element.department_name, element.product_name, element.stock_quantity, "$" + element.price, "$" + element.product_sales])
+    });
+    // push table created with data
+    return table(tableRow);
+}
+
+//show table function
+function showTable() {
+    //query database
+    let select = "SELECT * FROM products";
+    connection.query(select, function (err, res) {
+        if (err) throw err;
+        // res from query = data defined in maketable function
+        // log the function return
+        console.log(makeTable(res));
+        // end the connection
+        connection.end();
+    });
+}
 
 //create connection to database
 const connection = mysql.createConnection({
@@ -29,11 +56,11 @@ connection.connect(function (err) {
 function startApp() {
     console.log('\n');
     console.log('\n');
-    console.log('--------------------'.blue);
+    console.log('--------------------'.green);
     console.log('\n');
-    console.log("Welcome Bamazon™ manager.".blue);
+    console.log("Welcome Bamazon™ supervisor.".green);
     console.log('\n');
-    console.log('--------------------'.blue);
+    console.log('--------------------'.green);
     console.log('\n');
     console.log('\n');
 
@@ -72,15 +99,20 @@ function promptOptions() {
         name: "menu",
         type: "list",
         message: "What would you like to do?",
-        choices: ["View Products for Sale".yellow, "View Low Inventory".blue, "Add to Inventory".green, "Add New Product".magenta, "Exit".red]
+        choices: ["View Product Sales by Department".yellow, "Create New Department".blue, "View Low Inventory".cyan, "Add to Inventory".green, "Add New Product".magenta, "Exit".red]
     }).then(function (answer) {
         //switch function
         switch (answer.menu) {
-            case "View Products for Sale".yellow:
-                queryAll();
+            case "View Product Sales by Department".yellow:
+                showTable();
                 break;
 
-            case "View Low Inventory".blue:
+            case "Create New Department".blue:
+                console.log("nothing yet.");
+                connection.end();
+                break;
+
+            case "View Low Inventory".cyan:
                 queryLow();
                 break;
 
@@ -98,6 +130,8 @@ function promptOptions() {
         }
     });
 }
+
+
 
 //validate integer
 function validateInt(num) {
@@ -145,7 +179,7 @@ function addItem() {
     ]).then(function (answer) {
         // insert into database and loop app to start
         let insert = "INSERT INTO products SET ?";
-        connection.query(insert, { product_name: answer.item, department_name: answer.department, price: answer.price, stock_quantity: answer.quantity, product_sales: 0.00 }, function (err) {
+        connection.query(insert, { product_name: answer.item, department_name: answer.department, price: answer.price, stock_quantity: answer.quantity }, function (err) {
             if (err) throw err;
             console.log('\n');
             console.log('--------------------'.blue);
@@ -278,31 +312,6 @@ function displayAll() {
     });
 }
 
-//display all items from user query
-function queryAll() {
-    // pull from database
-    let select = "SELECT * FROM products";
-    connection.query(select, function (err, res) {
-
-        if (err) throw err;
-        // console.log(res);
-
-        //display products
-        for (let i = 0; i < res.length; i++) {
-
-            console.log('\n');
-            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.blue);
-            console.log("ID: " + res[i].item_id + " | " + "Quantity: " + res[i].stock_quantity + " | " + "Product: " + res[i].product_name + " | " + "Price: " + res[i].price);
-            console.log('--------------------------------------------------------------------------------------------------------------------------------------------------'.blue);
-            console.log('\n');
-
-        }
-        //trigger prompt
-        promptOptions();
-    });
-
-}
-
 //exit option
 function endApp() {
     console.log('\n');
@@ -317,8 +326,6 @@ function endApp() {
     connection.end();
 }
 
-
-
 //password validation code --------
 // function validatePassword(code) {
 //     var schema = Joi.number().integer().min(1000).max(9999);
@@ -327,3 +334,18 @@ function endApp() {
 // }
 //password validation code -------
 
+/*
+Pseudo-Code
+Managed to properly display items in a table but didn't get to the rest of the activity. 
+My plan was to JOIN and GROUP BY the tables to by department and calculate the overhead costs of each department to display in a new table 
+when the supervizor enters "View Product Sales by Department."
+
+Also I would add a Create New Department function that would add a new Department to the department table while also adding the department as an option
+within the products table. 
+
+I did not include the logic to automaticalle add a new menu option as a customer when new departments were created although giving a departments
+option wasn't part of the assignment, just something I wanted to include.
+
+Finally, I was not able to finalize password validation but my goal was to give the Manager and Supervisor a four digit code that needed entered to access their applications.
+
+*/

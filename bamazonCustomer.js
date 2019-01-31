@@ -187,7 +187,7 @@ function userPurchase() {
                             userPurchase();
                         } 
                         else {
-                            //update database stock quantity and display cost
+                            //update database stock quantity, total sales, and display cost to user
                             let newQuantity = res[0].stock_quantity;
                             newQuantity -= ans.quantity;
                             let cost = res[0].price;
@@ -196,6 +196,7 @@ function userPurchase() {
                             // console.log(sales);
                             sales += totalCost;
                             // console.log(sales.toFixed(2));
+                            //update database
                             let update = "UPDATE products SET ? WHERE ?";
                             connection.query(update, [{ stock_quantity: newQuantity, product_sales: sales.toFixed(2) }, { item_id: answer.idInput }], function (err, res) {
                                 if (err) throw err;
@@ -221,7 +222,6 @@ function userPurchase() {
                                     }
                                 });
                             });
-                            
                         }
                     });
                 }
