@@ -26,7 +26,7 @@ option wasn't part of the assignment, just something I wanted to include.
 
 Finally, I was not able to finalize password validation but my goal was to give the Manager and Supervisor a four digit code that needed entered to access their applications.
 
-## Here is a video of what LIRI can do
+## Here is a video of what Bamazon can do
 
 * [video link](https://drive.google.com/open?id=1lPMYoeUl7HlG227Y5YaY2pB4gBXNZ0PV)
 * [drive folder link](https://drive.google.com/drive/folders/1mYUqiRUNfLfbetASjCji672jmaJhdAh9?usp=sharing)
