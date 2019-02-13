@@ -28,7 +28,7 @@ Finally, I was not able to finalize password validation but my goal was to give 
 
 ## Here is a video of what Bamazon can do
 
-* [video link](https://drive.google.com/open?id=1lPMYoeUl7HlG227Y5YaY2pB4gBXNZ0PV)
+* [video link](https://drive.google.com/file/d/18U5h5ztivgCLe8XKPibjJlvN6ATB1pcD/view)
 * [drive folder link](https://drive.google.com/drive/folders/1mYUqiRUNfLfbetASjCji672jmaJhdAh9?usp=sharing)
 
 
